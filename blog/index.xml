@@ -18,7 +18,7 @@
       
       <guid>/blog/tidyverse-for-eyemovement/</guid>
       <description>Tidyverse 是由Hadley Wickham开发的一系列非常实用的R包的合集，涉及到数据导入、转换、清洗以及可视化等数据分析中必不可少的环节。本文的目的在于通过一个简单的眼动数据分析的实例，介绍一下tidyverse的基本知识，并分享一些相关的资料。本文面向的是对R有一定的了解，但对tidyverse不是很了解，并且是在RStudio中使用R的用户。
-载入tidyverselibrary(tidyverse)## Warning: package &amp;#39;tidyverse&amp;#39; was built under R version 3.4.3## -- Attaching packages ----------------- tidyverse 1.2.1 --## √ ggplot2 2.2.1 √ purrr 0.2.4## √ tibble 1.4.2 √ dplyr 0.7.4## √ tidyr 0.8.0 √ stringr 1.2.0## √ readr 1.1.1 √ forcats 0.2.0## Warning: package &amp;#39;tibble&amp;#39; was built under R version 3.4.3## Warning: package &amp;#39;tidyr&amp;#39; was built under R version 3.</description>
+载入tidyverselibrary(tidyverse)## Warning: package &amp;#39;tidyverse&amp;#39; was built under R version 3.4.3## -- Attaching packages ------------------------------ tidyverse 1.2.1 --## √ ggplot2 2.2.1 √ purrr 0.2.4## √ tibble 1.4.2 √ dplyr 0.7.4## √ tidyr 0.8.0 √ stringr 1.2.0## √ readr 1.1.1 √ forcats 0.2.0## Warning: package &amp;#39;tibble&amp;#39; was built under R version 3.4.3## Warning: package &amp;#39;tidyr&amp;#39; was built under R version 3.</description>
     </item>
     
   </channel>
