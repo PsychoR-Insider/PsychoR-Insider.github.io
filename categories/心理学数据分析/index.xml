@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>心理学数据分析 on PsychoR</title>
+    <link>/categories/%E5%BF%83%E7%90%86%E5%AD%A6%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90/</link>
+    <description>Recent content in 心理学数据分析 on PsychoR</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-CN</language>
+    <lastBuildDate>Mon, 25 Dec 2017 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="/categories/%E5%BF%83%E7%90%86%E5%AD%A6%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>使用tidyverse处理眼动数据</title>
+      <link>/blog/tidyverse-for-eyemovement/</link>
+      <pubDate>Mon, 25 Dec 2017 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/tidyverse-for-eyemovement/</guid>
+      <description>Tidyverse 是由Hadley Wickham开发的一系列非常实用的R包的合集，涉及到数据导入、转换、清洗以及可视化等数据分析中必不可少的环节。本文的目的在于通过一个简单的眼动数据分析的实例，介绍一下tidyverse的基本知识，并分享一些相关的资料。本文面向的是对R有一定的了解，但对tidyverse不是很了解，并且是在RStudio中使用R的用户。
+载入tidyverselibrary(tidyverse)## Warning: package &amp;#39;tidyverse&amp;#39; was built under R version 3.4.3## -- Attaching packages ----------------- tidyverse 1.2.1 --## √ ggplot2 2.2.1 √ purrr 0.2.4## √ tibble 1.4.2 √ dplyr 0.7.4## √ tidyr 0.8.0 √ stringr 1.2.0## √ readr 1.1.1 √ forcats 0.2.0## Warning: package &amp;#39;tibble&amp;#39; was built under R version 3.4.3## Warning: package &amp;#39;tidyr&amp;#39; was built under R version 3.</description>
+    </item>
+    
+  </channel>
+</rss>

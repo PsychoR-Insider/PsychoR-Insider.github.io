@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta name="generator" content="Hugo 0.36" />
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title> 使用tidyverse处理眼动数据 </title>
+
+  
+  <meta name="description" content="Tidyvers 是由 Hadley Wickham 开发的一系列非常实用的 R 包的合集，涉及到数据导入、转换、清洗以及可视化等数据分析中必不可少的环节。本文的目的在于通过一个简单的眼动数据分析的实例，介绍一下 tidyverse 的基本知识，并分享一些相关的资料。本文面向的是对 R 有一定的了解，但对 tidyverse 不是很了解，并且是在 RStudio 中使用 R 的用户。"> 
+  
+  
+  
+  
+  
+
+  
+
+  <meta name="author" content="孟祥良">
+
+
+  <meta property="og:title" content="使用tidyverse处理眼动数据" />
+<meta property="og:description" content="Tidyvers 是由 Hadley Wickham 开发的一系列非常实用的 R 包的合集，涉及到数据导入、转换、清洗以及可视化等数据分析中必不可少的环节。本文的目的在于通过一个简单的眼动数据分析的实例，介绍一下 tidyverse 的基本知识，并分享一些相关的资料。本文面向的是对 R 有一定的了解，但对 tidyverse 不是很了解，并且是在 RStudio 中使用 R 的用户。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="/blog/tidyverse-for-eyemovement/" />
+
+
+
+<meta property="article:published_time" content="2017-12-25T00:00:00&#43;00:00"/>
+
+<meta property="article:modified_time" content="2017-12-25T00:00:00&#43;00:00"/>
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  
+  
+  
+  
+
+  <link rel="canonical" href="/blog/tidyverse-for-eyemovement/">  
+
+  <link rel="shortcut icon" type="image/png" href="data:image/png;base64,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RvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3EldwAAAAAAAJJjRvlaOwAAAAAAALXmk3Eld+D/AfhEhmLqHBsfAAAAAElFTkSuQmCC">
+
+
+  <link href="/css/font.css" rel="stylesheet" type="text/css">
+  <link href="/css/kube.min.css" rel="stylesheet" type="text/css">
+  <link href="/css/kube.legenda.css" rel="stylesheet" type="text/css">
+  <link href="/css/highlight.css" rel="stylesheet" type="text/css">
+  <link href="/css/master.css" rel="stylesheet" type="text/css">
+  <link href="/css/kube.demo.css" rel="stylesheet" type="text/css">
+
+ <link href="/css/custom.css" rel="stylesheet" type="text/css">
+
+  <script src="/js/jquery-2.1.4.min.js" type="text/javascript">
+  </script>
+
+  <script type="text/javascript" src="/js/tocbot.min.js"></script>
+</head>
+
+
+<body class="page-kube">
+  <header> <div class="show-sm">
+    <div id="nav-toggle-box">
+      <div id="nav-toggle-brand">
+        <a href="http://psychor.org">PsychoR</a>
+      </div><a data-component="toggleme" data-target="#top" href="#" id="nav-toggle"><i class="kube-menu"></i></a>
+    </div>
+  </div>
+  <div class="hide-sm" id="top">
+    <div id="top-brand">
+      <a href="/" title="home"><img alt="Logo" height="50"  width="100" src="/img/psychor-logo.png" /></a>
+    </div>
+    <nav id="top-nav-main">
+      <ul>
+       
+       
+    <li><a href="/blog/" >Blog</a></li>
+    
+    <li><a href="/company/index.html" >About</a></li>
+    
+      </ul>
+    </nav>
+    <nav id="top-nav-extra">
+      <ul>
+      </ul>
+    </nav>
+  </div>
+  
+<link rel="stylesheet" href="/css/github.css" rel="stylesheet" id="theme-stylesheet">
+<script src="/js/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script> </header>
+  <main>
+<div class="push-center" itemscope itemtype="http://schema.org/BlogPosting">
+    
+<meta itemprop="name" content="使用tidyverse处理眼动数据">
+<meta itemprop="description" content="Tidyvers 是由 Hadley Wickham 开发的一系列非常实用的 R 包的合集，涉及到数据导入、转换、清洗以及可视化等数据分析中必不可少的环节。本文的目的在于通过一个简单的眼动数据分析的实例，介绍一下 tidyverse 的基本知识，并分享一些相关的资料。本文面向的是对 R 有一定的了解，但对 tidyverse 不是很了解，并且是在 RStudio 中使用 R 的用户。">
+
+
+<meta itemprop="datePublished" content="2017-12-25T00:00:00&#43;00:00" />
+<meta itemprop="dateModified" content="2017-12-25T00:00:00&#43;00:00" />
+<meta itemprop="wordCount" content="2612">
+
+
+
+<meta itemprop="keywords" content="Tidyverse,眼动," />
+
+<div id="hero">
+    <h1 itemprop="headline">  使用tidyverse处理眼动数据</h1>
+
+<time class="post-time"><span class="icon">
+  <i class="fa fa-clock-o" aria-hidden="true"></i>
+</span>
+<span>13 minute read</span>
+<span class="icon">
+ <i class="fa fa-pencil" aria-hidden="true"></i>
+</span>
+
+  Published: <time datetime="2017-12-25T00:00:00&#43;00:00">25 Dec, 2017</time>
+
+</time>
+</div>
+<div id="post-box">
+<div id="post" itemprop="articleBody">
+    
+    <p><code>Tidyverse</code> 是由<strong>Hadley Wickham</strong>开发的一系列非常实用的<strong>R</strong>包的合集，涉及到数据导入、转换、清洗以及可视化等数据分析中必不可少的环节。本文的目的在于通过一个简单的眼动数据分析的实例，介绍一下<code>tidyverse</code>的基本知识，并分享一些相关的资料。本文面向的是对<strong>R</strong>有一定的了解，但对<code>tidyverse</code>不是很了解，并且是在<strong>RStudio</strong>中使用<strong>R</strong>的用户。</p>
+<div id="tidyverse" class="section level2">
+<h2>载入tidyverse</h2>
+<pre class="r"><code>library(tidyverse)</code></pre>
+<pre><code>## Warning: package &#39;tidyverse&#39; was built under R version 3.4.3</code></pre>
+<pre><code>## -- Attaching packages ----------------- tidyverse 1.2.1 --</code></pre>
+<pre><code>## √ ggplot2 2.2.1     √ purrr   0.2.4
+## √ tibble  1.4.2     √ dplyr   0.7.4
+## √ tidyr   0.8.0     √ stringr 1.2.0
+## √ readr   1.1.1     √ forcats 0.2.0</code></pre>
+<pre><code>## Warning: package &#39;tibble&#39; was built under R version 3.4.3</code></pre>
+<pre><code>## Warning: package &#39;tidyr&#39; was built under R version 3.4.3</code></pre>
+<pre><code>## Warning: package &#39;purrr&#39; was built under R version 3.4.3</code></pre>
+<pre><code>## Warning: package &#39;dplyr&#39; was built under R version 3.4.3</code></pre>
+<pre><code>## -- Conflicts -------------------- tidyverse_conflicts() --
+## x dplyr::filter() masks stats::filter()
+## x dplyr::lag()    masks stats::lag()</code></pre>
+<p>载入<code>tidyverse</code>后，可以看到有8个包被同时载入，这8个包分别是：</p>
+<ul>
+<li><code>ggplot2</code>：用于可视化</li>
+<li><code>tibble</code>：<code>data.frame</code>（数据框）的加强版</li>
+<li><code>tidyr</code>：用于数据转换（长、宽数据之间的转换，以及列的分离与合并）</li>
+<li><code>readr</code>：用于数据的输入与输出</li>
+<li><code>purrr</code>：用于编程</li>
+<li><code>dplyr</code>：用于数据清洗</li>
+<li><code>stringr</code>：用于处理字符型数据</li>
+<li><code>forcats</code>：用于处理因子型数据</li>
+</ul>
+<p>同时，也可以看到<code>tidyverse</code>系列中的函数与之前存在的哪些函数存在冲突，如果此时你还想使用<code>stats</code>包中的<code>filter</code>函数，需要在<code>filter</code>函数前指定包名，即写成<code>stats：：filter</code>形式。</p>
+<p>此外，通过<strong>forcat</strong>（factor中字母的重新组合）以及<strong>purrr</strong>（意指猫咕噜咕噜叫的声音）两个包名，也可以了解到，<strong>Hadley</strong> sama应该是很喜欢猫的（跟我一样）。</p>
+<p>一般来说，我的第一行代码都会是<code>library(tidyverse)</code>，但很多人似乎习惯于将<code>setwd(theirpath)</code>，或<code>rm(list = ls())</code>写在最前面。这两行代码使<strong>Bryan</strong>大姐大动肝火，愤怒的仿佛<strong>FFF团团员</strong>见到了<strong>异性恋</strong>。她为什么不建议使用这两行代码呢？请参看<a href="https://www.tidyverse.org/articles/2017/12/workflow-vs-script/">Project-oriented workflow</a>。简单来说，<code>setwd()</code>不具备可移植性，而<code>rm(list = ls())</code>只能清理全局工作空间中的对象，如果想要一个干净的环境，最好还是使用<strong>Ctrl+Shift+F10</strong>重起<strong>R</strong>。</p>
+<p>另外，如果想系统学习<code>tidyverse</code>，请点击<a href="http://r4ds.had.co.nz/index.html">R for Data Science</a>。目前这本书只有英文版。</p>
+</div>
+<div class="section level2">
+<h2>数据导入</h2>
+<p>首先，要将数据导入<strong>R</strong>中。因为本文只涉及到一个数据文件，因此我就新建了一个project(File-&gt;New Project)，并把这个文件丢到了该Project文件夹下。</p>
+<p>数据导入的代码如下：</p>
+<pre class="r"><code>dl &lt;- read_csv(&#39;dl.csv&#39;)</code></pre>
+<pre><code>## Parsed with column specification:
+## cols(
+##   .default = col_character(),
+##   `AOI Order` = col_integer(),
+##   `AOI Size [px]` = col_integer(),
+##   `AOI Coverage [%]` = col_double(),
+##   `Start Time [ms]` = col_integer(),
+##   `End Time [ms]` = col_integer(),
+##   `Net Dwell Time [ms]` = col_double(),
+##   `Dwell Time [ms]` = col_double(),
+##   `Glance Duration [ms]` = col_double(),
+##   `Diversion Duration [ms]` = col_double(),
+##   `First Fixation Duration [ms]` = col_double(),
+##   `Glances Count` = col_integer(),
+##   `Fixation Count` = col_integer(),
+##   `Appearance Count` = col_integer(),
+##   `Visible Time [ms]` = col_double(),
+##   `Visible Time [%]` = col_integer(),
+##   `Net Dwell Time [%]` = col_double(),
+##   `Dwell Time [%]` = col_double(),
+##   `Fixation Time [ms]` = col_double(),
+##   `Fixation Time [%]` = col_double()
+## )</code></pre>
+<pre><code>## See spec(...) for full column specifications.</code></pre>
+<p>在这里，我使用的是<code>readr</code>包里的<code>read_csv</code>函数，与<code>base</code>包里的<code>read.csv</code>函数相比，这个函数的速度更快。运行完之后，可以看到很多信息。这不是错误，也不是警告，只是告知我们每一列数据被解析成了什么类型，如果有那一列的数据类型不是我们所预期的，我们可以即时发现并作出更改。另外，通过<code>readr</code>包所导入的数据会自动的转成<code>tibble</code>格式。</p>
+<p>对于<code>tidyverse</code>中的每一个核心包，<a href="https://www.tidyverse.org/">Tidyverse</a>网站中都有相应的介绍。</p>
+</div>
+<div class="section level2">
+<h2>数据清洗</h2>
+<p><code>tibble</code>格式相较于<code>data.frame</code>格式的优势在于，默认情况下只显示前10行数据，并会显示数据的行数与列数以及每一列的数据类型，这样就无需额外使用<code>str</code>等函数来查看相关的信息。</p>
+<p>通过直接输入数据名，我们来看一下这个数据：</p>
+<pre class="r"><code>dl</code></pre>
+<pre><code>## # A tibble: 13,147 x 30
+##    Trial  Subject Color  Stimulus `Area of Intere~ `AOI Group` `AOI Scope`
+##    &lt;chr&gt;  &lt;chr&gt;   &lt;chr&gt;  &lt;chr&gt;    &lt;chr&gt;            &lt;chr&gt;       &lt;chr&gt;      
+##  1 Trial~ P01     Coral  1d1.jpg  AOI 003          &lt;NA&gt;        Local      
+##  2 Trial~ lhj     Cornf~ 1d1.jpg  AOI 003          &lt;NA&gt;        Local      
+##  3 Trial~ xyn     Crims~ 1d1.jpg  AOI 003          &lt;NA&gt;        Local      
+##  4 Trial~ WCF     Cyan   1d1.jpg  AOI 003          &lt;NA&gt;        Local      
+##  5 Trial~ YYH     DarkB~ 1d1.jpg  AOI 003          &lt;NA&gt;        Local      
+##  6 Trial~ CBL     DarkC~ 1d1.jpg  AOI 003          &lt;NA&gt;        Local      
+##  7 Trial~ MJC     DarkG~ 1d1.jpg  AOI 003          &lt;NA&gt;        Local      
+##  8 Trial~ FZL     DarkG~ 1d1.jpg  AOI 003          &lt;NA&gt;        Local      
+##  9 Trial~ XC (1)  DarkK~ 1d1.jpg  AOI 003          &lt;NA&gt;        Local      
+## 10 Trial~ WW      DarkM~ 1d1.jpg  AOI 003          &lt;NA&gt;        Local      
+## # ... with 13,137 more rows, and 23 more variables: `AOI Order` &lt;int&gt;,
+## #   `AOI Size [px]` &lt;int&gt;, `AOI Coverage [%]` &lt;dbl&gt;, `Start Time
+## #   [ms]` &lt;int&gt;, `End Time [ms]` &lt;int&gt;, `Entry Time [ms]` &lt;chr&gt;,
+## #   Sequence &lt;chr&gt;, `Net Dwell Time [ms]` &lt;dbl&gt;, `Dwell Time [ms]` &lt;dbl&gt;,
+## #   `Glance Duration [ms]` &lt;dbl&gt;, `Diversion Duration [ms]` &lt;dbl&gt;, `First
+## #   Fixation Duration [ms]` &lt;dbl&gt;, `Glances Count` &lt;int&gt;, Revisits &lt;chr&gt;,
+## #   `Fixation Count` &lt;int&gt;, `Appearance Count` &lt;int&gt;, `Visible Time
+## #   [ms]` &lt;dbl&gt;, `Visible Time [%]` &lt;int&gt;, `Net Dwell Time [%]` &lt;dbl&gt;,
+## #   `Dwell Time [%]` &lt;dbl&gt;, `Fixation Time [ms]` &lt;dbl&gt;, `Fixation Time
+## #   [%]` &lt;dbl&gt;, `Time to First Mouse Click [ms]` &lt;chr&gt;</code></pre>
+<p>可以看到，这份数据有13000多行，30列变量。第一列是试次编号，第二列是被试名，后面分别有颜色、刺激物、兴趣区以及各种眼动指标。这份数据其实包含了两个实验，并且预实验被试的数据也留在了里面，后面会把这些问题都解决掉，但现在我要先停下来，介绍一下什么是<strong>Tidy Data</strong>。</p>
+<p><strong>Tidy Data</strong>是一种数据格式，有三条原则，分别是：</p>
+<ul>
+<li><p>Each variable forms a column.</p></li>
+<li><p>Each observation forms a row.</p></li>
+<li><p>Each type of observational unit forms a table.</p></li>
+</ul>
+<p>前两条原则很好理解，就是每种变量（如被试编号、性别、年龄、实验条件、反应时、正确率等）形成一列，每个观测（如性别×组别两因素实验中，控制组男被试在某试次下的一个因变量数据）形成一行。对于第三条原则，在查阅了相应的文档之后，我认为它是指一个表格里只能放一种因变量。关于<strong>Tidy Data</strong>的详细内容，可在前面提到的<strong>tidyverse</strong>网站中找到，也可以在<strong>R</strong>中通过<code>tidyr</code>包找到相应的文档。<strong>R</strong>里面的大部分分析都要求数据满足<strong>Tidy Data</strong>格式，当然，这也不是绝对的，比如t检验，满足与不满足均可。</p>
+<p>根据<strong>Tidy Data</strong>的第三条原则，我这次分析只选择了总注视时间这一个眼动指标。此外，我还选择了试次编号、被试名、刺激物以及兴趣区四列。在对列进行选择时，要用到<code>dplyr</code>包中的<code>select</code>函数。此时的代码如下：</p>
+<pre class="r"><code>dl &lt;- read_csv(&quot;dl.csv&quot;) %&gt;% 
+  select(trial = 1, sub = 2, stimuli = 4, aoi = 5, net_dt = 15)</code></pre>
+<p>在这里，我用到了管道操作符<code>%&gt;%</code>。它的作用是将其左边操作所生成的数据传递到其右边函数的第一个参数位置上（通过某种操作也可传递到其他位置上），其快捷键是<strong>Ctrl+Shift+M</strong>（另外，赋值符<strong>&lt;-</strong>的快捷键是<strong>Alt+-</strong>）。使用管道操作符，可以在保证代码具有条理性的前提之下，减少中间变量的命名（给中间变量起名是一件非常耗时的事情）与重复输入。因为<code>tidyverse</code>包函数中第一个参数位置上一般都是数据名，所以管道操作符可以很好地与<code>tidyverse</code>搭配使用。管道操作符属于<code>magrittr</code>包，但载入<code>tidyverse</code>包会将其自动载入。管道操作符并不是只有这一种，若想进一步了解管道操作符，请看<a href="https://www.datacamp.com/community/tutorials/pipe-r-tutorial">Pipes in R Tutorial For Beginners</a>。另外，<code>pipeR</code>包也提供了一系列管道操作符，非常实用，其作者是之前提到的任坤。</p>
+<p><code>tidyverse</code>有一个原则，即每个函数只做一件事情（忘了在哪里看到的了）。但是<code>select</code>函数就违背了这一原则，因为它至少可以做三件事情。一是对列进行选择，二是对所选择的列进行重命名，三是对所选择的列进行排序。在上面的代码中，我从原始数据中选择了5列，并重新给变量命了名，这时的数据是这样的：</p>
+<pre class="r"><code>dl</code></pre>
+<pre><code>## # A tibble: 13,147 x 5
+##    trial    sub    stimuli aoi     net_dt
+##    &lt;chr&gt;    &lt;chr&gt;  &lt;chr&gt;   &lt;chr&gt;    &lt;dbl&gt;
+##  1 Trial048 P01    1d1.jpg AOI 003      0
+##  2 Trial050 lhj    1d1.jpg AOI 003   2236
+##  3 Trial041 xyn    1d1.jpg AOI 003    619
+##  4 Trial041 WCF    1d1.jpg AOI 003   1036
+##  5 Trial041 YYH    1d1.jpg AOI 003    988
+##  6 Trial041 CBL    1d1.jpg AOI 003    336
+##  7 Trial042 MJC    1d1.jpg AOI 003   1168
+##  8 Trial041 FZL    1d1.jpg AOI 003   1024
+##  9 Trial041 XC (1) 1d1.jpg AOI 003    721
+## 10 Trial041 WW     1d1.jpg AOI 003   1152
+## # ... with 13,137 more rows</code></pre>
+<p>需要的列已经挑选了出来，接下来该针对行进行处理了。在处理之前，我先用<code>unique</code>函数对兴趣区内的元素进行了查看。<code>unique</code>函数的作用是去掉重复的元素。这一步的代码如下：</p>
+<pre class="r"><code>unique(dl$aoi)</code></pre>
+<pre><code>## [1] &quot;AOI 003&quot;     &quot;AOI 002&quot;     &quot;AOI 001&quot;     &quot;White Space&quot;</code></pre>
+<p>可以看到，一共有3个兴趣区以及一个“White Space”。当被试看到“white Space”时，数据是无效的，因此要清理掉。在针对行进行清理时，要用到<code>dplyr</code>包中的<code>filter</code>函数，它可以根据相应的条件，剔除某些行。此时的代码如下：</p>
+<pre class="r"><code>dl &lt;- read_csv(&quot;dl.csv&quot;) %&gt;%
+  select(trial = 1, sub = 2, stimuli = 4, aoi = 5, net_dt = 15) %&gt;%
+  filter(aoi != &quot;White Space&quot;)</code></pre>
+<p><code>filter</code>函数在这里的作用是将<strong>aoi</strong>变量中不是(<code>!</code>)”White Space“的行保留下来。此时的数据是这样的，可以看到，在剔除了一部分无用数据之后，行数已经从13000多行减少到了9000多行：</p>
+<pre class="r"><code>dl</code></pre>
+<pre><code>## # A tibble: 9,391 x 5
+##    trial    sub    stimuli aoi     net_dt
+##    &lt;chr&gt;    &lt;chr&gt;  &lt;chr&gt;   &lt;chr&gt;    &lt;dbl&gt;
+##  1 Trial048 P01    1d1.jpg AOI 003      0
+##  2 Trial050 lhj    1d1.jpg AOI 003   2236
+##  3 Trial041 xyn    1d1.jpg AOI 003    619
+##  4 Trial041 WCF    1d1.jpg AOI 003   1036
+##  5 Trial041 YYH    1d1.jpg AOI 003    988
+##  6 Trial041 CBL    1d1.jpg AOI 003    336
+##  7 Trial042 MJC    1d1.jpg AOI 003   1168
+##  8 Trial041 FZL    1d1.jpg AOI 003   1024
+##  9 Trial041 XC (1) 1d1.jpg AOI 003    721
+## 10 Trial041 WW     1d1.jpg AOI 003   1152
+## # ... with 9,381 more rows</code></pre>
+<p>先前提到，这个数据中还有一部分预实验被试的数据，在正式分析之前，我们还要将这些被试的数据剔除掉。这一步还是要用到<code>filter</code>函数，但在处理之前，要先建立一个包含了预实验被试名的字符串。这一行代码如下：</p>
+<pre class="r"><code>sub_pre &lt;- c(&quot;P01&quot;, &quot;lhj&quot;, &quot;xyn&quot;, &quot;WCF&quot;, &quot;YYH&quot;, &quot;CBL&quot;, &quot;MJC&quot;, &quot;FZL&quot;, &quot;XC (1)&quot;, &quot;WW&quot;, &quot;LJY&quot;)</code></pre>
+<p>接下来就可以使用<code>filter</code>将预实验被试数据清理掉了。此时的代码如下：</p>
+<pre class="r"><code>dl &lt;- read_csv(&quot;dl.csv&quot;) %&gt;%
+  select(trial = 1, sub = 2, stimuli = 4, aoi = 5, net_dt = 15) %&gt;%
+  filter(aoi != &quot;White Space&quot;) %&gt;%
+  filter(!sub %in% sub_pre) </code></pre>
+<p>这里用到了<code>%in%</code>函数，这是一个用来匹配的函数，其用法可在<strong>R</strong>中输入<code>?match</code>查看。举个简单的例子，当输入：</p>
+<pre class="r"><code>1:10 %in% 1:3</code></pre>
+<pre><code>##  [1]  TRUE  TRUE  TRUE FALSE FALSE FALSE FALSE FALSE FALSE FALSE</code></pre>
+<p>时，可以看到前3个值返回了<strong>TRUE</strong>，而后面都是<strong>FALSE</strong>，因为左边数据中只有前3个元素与右边匹配。在之前的代码中，我将<strong>sub</strong>列与<strong>sub_pre</strong>进行匹配，随后又使用逻辑非(<strong>!</strong>)反向选择，进而剔除了预实验被试。此时数据如下，可以看到行数进一步减少到了8000多行：</p>
+<pre class="r"><code>dl</code></pre>
+<pre><code>## # A tibble: 8,401 x 5
+##    trial    sub   stimuli aoi     net_dt
+##    &lt;chr&gt;    &lt;chr&gt; &lt;chr&gt;   &lt;chr&gt;    &lt;dbl&gt;
+##  1 Trial007 gyx   1d1.jpg AOI 003  288  
+##  2 Trial047 gyx   1d1.jpg AOI 003  959  
+##  3 Trial007 CJY   1d1.jpg AOI 003  480  
+##  4 Trial047 CJY   1d1.jpg AOI 003  840  
+##  5 Trial007 CY    1d1.jpg AOI 003  432  
+##  6 Trial048 CY    1d1.jpg AOI 003 1056  
+##  7 Trial008 CXM   1d1.jpg AOI 003  792  
+##  8 Trial051 CXM   1d1.jpg AOI 003 1548  
+##  9 Trial007 ZA    1d1.jpg AOI 003   48.0
+## 10 Trial047 ZA    1d1.jpg AOI 003 1096  
+## # ... with 8,391 more rows</code></pre>
+<p>接下来要对自变量进行处理。这份数据所包含的两个实验都是二因素实验，而这两个因素都包含在<strong>stimuli</strong>这一列变量中，这一点违背了<strong>Tidy Data</strong>的第一个原则，即一种变量形成一列，而不是两个变量同在一列。先看一下<strong>stimuli</strong>列中的元素：</p>
+<pre class="r"><code>unique(dl$stimuli)</code></pre>
+<pre><code>##  [1] &quot;1d1.jpg&quot;  &quot;2g1.jpg&quot;  &quot;3g6.jpg&quot;  &quot;3d1.jpg&quot;  &quot;2d5.jpg&quot;  &quot;1g6.jpg&quot; 
+##  [7] &quot;1d6.jpg&quot;  &quot;2g2.jpg&quot;  &quot;3d4.jpg&quot;  &quot;3d3.jpg&quot;  &quot;2g5.jpg&quot;  &quot;1d3.jpg&quot; 
+## [13] &quot;1g3.jpg&quot;  &quot;2d3.jpg&quot;  &quot;3g1.jpg&quot;  &quot;3g3.jpg&quot;  &quot;2d1_.jpg&quot; &quot;1g2.jpg&quot; 
+## [19] &quot;1d4.jpg&quot;  &quot;2g3.jpg&quot;  &quot;3g4.jpg&quot;  &quot;3d2.jpg&quot;  &quot;2g4.jpg&quot;  &quot;1d5.jpg&quot; 
+## [25] &quot;1g1.jpg&quot;  &quot;2d2.jpg&quot;  &quot;3g2.jpg&quot;  &quot;3d5.jpg&quot;  &quot;2g6.jpg&quot;  &quot;1d2.jpg&quot; 
+## [31] &quot;1g5.jpg&quot;  &quot;2d4.jpg&quot;  &quot;3g5.jpg&quot;  &quot;3d6.jpg&quot;  &quot;1g4.jpg&quot;  &quot;2d6.jpg&quot; 
+## [37] &quot;3s66.jpg&quot; &quot;1s11.jpg&quot; &quot;3s22.jpg&quot; &quot;1s22.jpg&quot; &quot;2s66.jpg&quot; &quot;1s33.jpg&quot;
+## [43] &quot;1s66.jpg&quot; &quot;3s44.jpg&quot; &quot;1s44.jpg&quot; &quot;3s33.jpg&quot; &quot;2s55.jpg&quot; &quot;1s55.jpg&quot;
+## [49] &quot;2s22.jpg&quot; &quot;2s11.jpg&quot; &quot;2s33.jpg&quot; &quot;2s44.jpg&quot; &quot;3s11.jpg&quot; &quot;3s55.jpg&quot;</code></pre>
+<p>实验1中因素1有3个水平（1，2，3），因素2有2个水平（d，g）；实验2中因素1有3个水平（1，2，3），因素2有6个水平（s1，s2，s3，s4，s5，s6）。后面的“.jpg“以及前面的1位数字（包括”_“）都是没有用的信息，可以去掉。这里要用到<code>dplyr</code>包中的<code>mutate</code>函数（用来在已有变量的基础上生成新变量或改写已有变量）和<code>stringr</code>包中的<code>str_replace</code>函数（用来替换），以及一点点正则表达式的知识。关于正则表达式相关内容，可以通过在<strong>R</strong>中输入<code>?regex</code>进行查看。此时的代码如下：</p>
+<pre class="r"><code>dl &lt;- read_csv(&quot;dl.csv&quot;) %&gt;%
+  select(trial = 1, sub = 2, stimuli = 4, aoi = 5, net_dt = 15) %&gt;%
+  filter(aoi != &quot;White Space&quot;) %&gt;%
+  filter(!sub %in% sub_pre) %&gt;%
+  mutate(stimuli = str_replace(stimuli, &quot;\\d_{0,}.jpg&quot;, &quot;&quot;))</code></pre>
+<p>这一行代码的意思是指针对<strong>stimuli</strong>列，用“”替换符合“\\d_{0,}.jpg”这一表达式的内容（其中“\\d”用来匹配数字，“_{0,}”用来匹配0个或多个“_”），因为“”中没有任何东西，其作用就是删除。替换之后，覆盖之前的<strong>stimuli</strong>列。此时数据及<strong>stimuli</strong>列中的元素如下：</p>
+<pre class="r"><code>dl</code></pre>
+<pre><code>## # A tibble: 8,401 x 5
+##    trial    sub   stimuli aoi     net_dt
+##    &lt;chr&gt;    &lt;chr&gt; &lt;chr&gt;   &lt;chr&gt;    &lt;dbl&gt;
+##  1 Trial007 gyx   1d      AOI 003  288  
+##  2 Trial047 gyx   1d      AOI 003  959  
+##  3 Trial007 CJY   1d      AOI 003  480  
+##  4 Trial047 CJY   1d      AOI 003  840  
+##  5 Trial007 CY    1d      AOI 003  432  
+##  6 Trial048 CY    1d      AOI 003 1056  
+##  7 Trial008 CXM   1d      AOI 003  792  
+##  8 Trial051 CXM   1d      AOI 003 1548  
+##  9 Trial007 ZA    1d      AOI 003   48.0
+## 10 Trial047 ZA    1d      AOI 003 1096  
+## # ... with 8,391 more rows</code></pre>
+<pre class="r"><code>unique(dl$stimuli)</code></pre>
+<pre><code>##  [1] &quot;1d&quot;  &quot;2g&quot;  &quot;3g&quot;  &quot;3d&quot;  &quot;2d&quot;  &quot;1g&quot;  &quot;3s6&quot; &quot;1s1&quot; &quot;3s2&quot; &quot;1s2&quot; &quot;2s6&quot;
+## [12] &quot;1s3&quot; &quot;1s6&quot; &quot;3s4&quot; &quot;1s4&quot; &quot;3s3&quot; &quot;2s5&quot; &quot;1s5&quot; &quot;2s2&quot; &quot;2s1&quot; &quot;2s3&quot; &quot;2s4&quot;
+## [23] &quot;3s1&quot; &quot;3s5&quot;</code></pre>
+<p>虽然两个实验的数据混在了一起，但幸运的是两个实验的条件1的水平都是一位数字，这时可以通过使用<code>tidyr</code>包中的<code>separate</code>函数轻松地将两个自变量分离开来。此时的代码如下：</p>
+<pre class="r"><code>dl &lt;- read_csv(&quot;dl.csv&quot;) %&gt;%
+  select(trial = 1, sub = 2, stimuli = 4, aoi = 5, net_dt = 15) %&gt;%
+  filter(aoi != &quot;White Space&quot;) %&gt;%
+  filter(!sub %in% sub_pre) %&gt;%
+  mutate(stimuli = str_replace(stimuli, &quot;\\d_{0,}.jpg&quot;, &quot;&quot;)) %&gt;%
+  separate(stimuli, c(&quot;number&quot;, &quot;word&quot;), sep = 1)</code></pre>
+<p>通过这一行代码的操作，原先的<strong>stimuli</strong>列分离成了<strong>number</strong>和<strong>word</strong>两个新列。</p>
+<pre class="r"><code>dl</code></pre>
+<pre><code>## # A tibble: 8,401 x 6
+##    trial    sub   number word  aoi     net_dt
+##    &lt;chr&gt;    &lt;chr&gt; &lt;chr&gt;  &lt;chr&gt; &lt;chr&gt;    &lt;dbl&gt;
+##  1 Trial007 gyx   1      d     AOI 003  288  
+##  2 Trial047 gyx   1      d     AOI 003  959  
+##  3 Trial007 CJY   1      d     AOI 003  480  
+##  4 Trial047 CJY   1      d     AOI 003  840  
+##  5 Trial007 CY    1      d     AOI 003  432  
+##  6 Trial048 CY    1      d     AOI 003 1056  
+##  7 Trial008 CXM   1      d     AOI 003  792  
+##  8 Trial051 CXM   1      d     AOI 003 1548  
+##  9 Trial007 ZA    1      d     AOI 003   48.0
+## 10 Trial047 ZA    1      d     AOI 003 1096  
+## # ... with 8,391 more rows</code></pre>
+<p>这时，我们可以使用<code>dplyr</code>包中的<code>arrange</code>函数以及之前使用过的<code>select</code>函数对行与列进行排序，并去掉已经没有用的<strong>aoi</strong>列。<code>arrange</code>函数默认是按升序排列，可以通过在参数前面加上<code>desc()</code>或<code>-</code>改为降序排列。此时代码如下：</p>
+<pre class="r"><code>dl &lt;- read_csv(&quot;dl.csv&quot;) %&gt;%
+  select(trial = 1, sub = 2, stimuli = 4, aoi = 5, net_dt = 15) %&gt;%
+  filter(aoi != &quot;White Space&quot;) %&gt;%
+  filter(!sub %in% sub_pre) %&gt;%
+  mutate(stimuli = str_replace(stimuli, &quot;\\d_{0,}.jpg&quot;, &quot;&quot;)) %&gt;%
+  separate(stimuli, c(&quot;number&quot;, &quot;word&quot;), sep = 1) %&gt;%
+  arrange(sub, trial) %&gt;%
+  select(2, 1, 3, 4, 6)</code></pre>
+<p>结果如下：</p>
+<pre class="r"><code>dl</code></pre>
+<pre><code>## # A tibble: 8,401 x 5
+##    sub   trial    number word  net_dt
+##    &lt;chr&gt; &lt;chr&gt;    &lt;chr&gt;  &lt;chr&gt;  &lt;dbl&gt;
+##  1 AYQ   Trial003 3      s6      1976
+##  2 AYQ   Trial003 3      s6      1324
+##  3 AYQ   Trial004 2      d        168
+##  4 AYQ   Trial004 2      d       2520
+##  5 AYQ   Trial004 2      d       1768
+##  6 AYQ   Trial005 1      s1      2324
+##  7 AYQ   Trial005 1      s1      1316
+##  8 AYQ   Trial006 3      d          0
+##  9 AYQ   Trial006 3      d       1628
+## 10 AYQ   Trial006 3      d        988
+## # ... with 8,391 more rows</code></pre>
+<p>接下来要对数据进行简单的描述统计计算，这时要用到<code>dplyr</code>包中的<code>group_by</code>和<code>summarise</code>组合。<code>group_by</code>用来针对变量进行分组，<code>summarise</code>用来进行计算，并在计算之后生成新的数据。此时代码如下：</p>
+<pre class="r"><code>dl &lt;- read_csv(&quot;dl.csv&quot;) %&gt;%
+  select(trial = 1, sub = 2, stimuli = 4, aoi = 5, net_dt = 15) %&gt;%
+  filter(aoi != &quot;White Space&quot;) %&gt;%
+  filter(!sub %in% sub_pre) %&gt;%
+  mutate(stimuli = str_replace(stimuli, &quot;\\d_{0,}.jpg&quot;, &quot;&quot;)) %&gt;%
+  separate(stimuli, c(&quot;number&quot;, &quot;word&quot;), sep = 1) %&gt;% 
+  arrange(sub, trial) %&gt;%
+  select(2, 1, 3, 4, 6) %&gt;%
+  group_by(sub, number, word) %&gt;%
+  summarise(mean_ndt = mean(net_dt))</code></pre>
+<p>结果如下：</p>
+<pre class="r"><code>dl</code></pre>
+<pre><code>## # A tibble: 1,128 x 4
+## # Groups:   sub, number [?]
+##    sub   number word  mean_ndt
+##    &lt;chr&gt; &lt;chr&gt;  &lt;chr&gt;    &lt;dbl&gt;
+##  1 AYQ   1      d         1168
+##  2 AYQ   1      g         1254
+##  3 AYQ   1      s1        1820
+##  4 AYQ   1      s2        1916
+##  5 AYQ   1      s3        1532
+##  6 AYQ   1      s4        1620
+##  7 AYQ   1      s5        1220
+##  8 AYQ   1      s6        1438
+##  9 AYQ   2      d         1111
+## 10 AYQ   2      g         1716
+## # ... with 1,118 more rows</code></pre>
+<p>这两行代码通过对被试及两个自变量进行分组，并计算各条件下所有试次的总注视时间的平均值，得到了新的数据。接下来，只要将两个实验的数据进行分离，即可完成数据清洗的工作。此时代码如下：</p>
+<pre class="r"><code>dl &lt;- read_csv(&quot;dl.csv&quot;) %&gt;%
+  select(trial = 1, sub = 2, stimuli = 4, aoi = 5, net_dt = 15) %&gt;%
+  filter(aoi != &quot;White Space&quot;) %&gt;%
+  filter(!sub %in% sub_pre) %&gt;%
+  mutate(stimuli = str_replace(stimuli, &quot;\\d_{0,}.jpg&quot;, &quot;&quot;)) %&gt;%
+  separate(stimuli, c(&quot;number&quot;, &quot;word&quot;), sep = 1) %&gt;%
+  arrange(sub, trial) %&gt;%
+  select(2, 1, 3, 4, 6) %&gt;%
+  group_by(sub, number, word) %&gt;%
+  summarise(mean_ndt = mean(net_dt)) %&gt;%
+  filter(word %in% c(&quot;d&quot;, &quot;g&quot;))</code></pre>
+<p>这里再一次用到了<code>filter</code>和<code>%in%</code>的组合。如果要把实验2的数据筛选出来，只需要在<strong>word</strong>之前加上一个<code>!</code>即可。这时数据清洗的工作已基本完成，数据已经完全符合<strong>Tidy Data</strong>的格式：</p>
+<pre class="r"><code>dl</code></pre>
+<pre><code>## # A tibble: 282 x 4
+## # Groups:   sub, number [141]
+##    sub   number word  mean_ndt
+##    &lt;chr&gt; &lt;chr&gt;  &lt;chr&gt;    &lt;dbl&gt;
+##  1 AYQ   1      d         1168
+##  2 AYQ   1      g         1254
+##  3 AYQ   2      d         1111
+##  4 AYQ   2      g         1716
+##  5 AYQ   3      d         1060
+##  6 AYQ   3      g         1326
+##  7 CJY   1      d         1074
+##  8 CJY   1      g         1304
+##  9 CJY   2      d         1205
+## 10 CJY   2      g         1708
+## # ... with 272 more rows</code></pre>
+<p>后面要对数据进行可视化处理，但由于这份数据并不是我的，我觉得还是不要把数据的真实情况展示出来的好，所以我进行了一些处理，此时的代码如下，这一串代码到此结束：</p>
+<pre class="r"><code>dl &lt;- read_csv(&quot;dl.csv&quot;) %&gt;%
+  select(trial = 1, sub = 2, stimuli = 4, aoi = 5, net_dt = 15) %&gt;%
+  filter(aoi != &quot;White Space&quot;) %&gt;%
+  filter(!sub %in% sub_pre) %&gt;%
+  mutate(stimuli = str_replace(stimuli, &quot;\\d_{0,}.jpg&quot;, &quot;&quot;)) %&gt;%
+  separate(stimuli, c(&quot;number&quot;, &quot;word&quot;), sep = 1) %&gt;%
+  arrange(sub, trial) %&gt;%
+  select(2, 1, 3, 4, 6) %&gt;%
+  group_by(sub, number, word) %&gt;%
+  summarise(mean_ndt = mean(net_dt)) %&gt;%
+  filter(word %in% c(&quot;d&quot;, &quot;g&quot;)) %&gt;%
+  mutate(mean_ndt = mean_ndt + sample(-1000:1000, n(), replace = T))</code></pre>
+</div>
+<div class="section level2">
+<h2>数据可视化</h2>
+<p>在进行可视化之前，先要简单地介绍一下<code>ggplot2</code>包。<code>ggplot2</code>是<code>tidyverse</code>中用来绘图的包，其中<strong>gg</strong>两个字母代表的是<strong>grammar of graphics</strong>，即图形语法，整个<code>ggplot2</code>就是建立在这一基础之上。关于图形语法的详细内容，请参看<strong>Hadley</strong> sama的论文<a href="http://www.tandfonline.com/doi/abs/10.1198/jcgs.2009.07098">A Layered Grammar of Graphics</a>。简单来说，就像英语语法中会有“主谓宾定状补”等成分一样，<code>ggplot2</code>中也有不同的语法成分，通过这些语法成分的组合，就可以画出各种各样的图。其中<strong>data</strong>（数据）、<strong>aesthetics</strong>（美学映射，用来将数据中的变量映射到图形上）以及<strong>geometries</strong>（几何形状，以哪种形式呈现，点、线、条、箱等等）三种成分是必须的，此外，本文还主要涉及到<strong>theme</strong>（主题，用来对非数据内容进行调整，使图形更美观）成分。</p>
+<p>若要系统学习<code>ggplot2</code>，可以看<strong>Hadley</strong>自己写的的<a href="https://item.jd.com/11228891.html">ggplot2：数据分析与图形艺术</a>。这本书现在已经有了第二版，但网上没有电子版，而且也不知道有没有人在翻译这个新版本。另外，有本尚未完成的关于<code>ggplot2</code>的书<a href="http://socviz.co/">Data Visualization for Social Science: A practical introduction with R and ggplot2</a>，个人感觉挺不错的，有兴趣的可以看一看。</p>
+<p>在这一部分，我将把之前生成的数据以带有误差棒的直条图的形式呈现出来。首先，我要对数据再进行一些处理，这次针对两个自变量进行分组，并额外计算出标准误，此时的代码如下，由于我不知道直接计算标准误的函数，所以写的稍微复杂了点，可以看到，新数据是6行4列：</p>
+<pre class="r"><code>dl %&gt;% group_by(number, word) %&gt;% 
+  summarise(mndt = mean(mean_ndt), se = sd(mean_ndt)/sqrt(n())) </code></pre>
+<pre><code>## # A tibble: 6 x 4
+## # Groups:   number [?]
+##   number word   mndt    se
+##   &lt;chr&gt;  &lt;chr&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1 1      d       823 101  
+## 2 1      g      1122  96.0
+## 3 2      d      1091  98.4
+## 4 2      g      1531  91.4
+## 5 3      d      1075  94.1
+## 6 3      g      1316 116</code></pre>
+<p>接下来我就要在此数据的基础上画出一个直条图来，这个图暂时只包括最基本的三种成分。此时的代码如下：</p>
+<pre class="r"><code>dl %&gt;% group_by(number, word) %&gt;% 
+  summarise(mndt = mean(mean_ndt), se = sd(mean_ndt)/sqrt(n())) %&gt;% 
+  ggplot(aes(word, mndt, fill = number)) + 
+  geom_col(position = position_dodge(), width = .6)</code></pre>
+<p><img src="/blog/analysis_of_oculomoter_data_with_tidyverse_files/figure-html/unnamed-chunk-27-1.png" width="672" /></p>
+<p><code>ggplot</code>是<code>ggplot2</code>包中的最基本函数，可以在其中指定数据（由于用了管道操作符，所以不需要这一步了）以及映射。写在<code>ggplot</code>内的<code>aes</code>（映射）可以为后面的所有<code>geom_</code>系列和<code>stat_</code>系列函数共用，由于后面还要画误差棒，所以我就把<code>aes</code>函数放在了<code>ggplot</code>中，而实际上<code>aes</code>也是可以写在<code>geom_col</code>中的。在<code>aes</code>中，第一个参数位置上的自变量<strong>word</strong>指将其映射到x轴上，第二个参数位置上的因变量<strong>mndt</strong>指将其映射到y轴上，后面的<code>fill = number</code>指将自变量<strong>number</strong>映射到颜色特征上，这里<code>fill</code>指的是填充色，如果要使用非填充色（如点、线或直条图的边框等），则要使用<code>color</code>参数。</p>
+<p>后面我使用了<code>geom_col</code>来画直条图。实际上画直条图还可以使用<code>geom_bar</code>，但是由于每一种<code>geom</code>都对应着一种<strong>statistics</strong>（统计变换），而<code>geom_bar</code>函数对应的统计变换是<strong>count</strong>（计数），需要额外指定<code>stat = 'identity'</code>（意为不做任何统计变换），才能保证我们的因变量映射到y轴上，而使用<code>geom_col</code>则不需要额外指定这一参数。在<code>geom_col</code>函数中，默认的位置呈现方式是<strong>stack</strong>（堆叠），为了使直条并排呈现，我使用了<code>position = position_dodge()</code>参数，此外还通过<code>width</code>参数改变了每个直条的宽度。</p>
+<p>接下来要添加误差棒，此时的代码如下：</p>
+<pre class="r"><code>dl %&gt;% group_by(number, word) %&gt;% 
+  summarise(mndt = mean(mean_ndt), se = sd(mean_ndt)/sqrt(n())) %&gt;% 
+  ggplot(aes(word, mndt, fill = number)) + 
+  geom_col(position = position_dodge(), width = .6) + 
+  geom_errorbar(aes(ymin = mndt - se, ymax = mndt + se), 
+                position = position_dodge(.6), width = .2)</code></pre>
+<p><img src="/blog/analysis_of_oculomoter_data_with_tidyverse_files/figure-html/unnamed-chunk-28-1.png" width="672" /></p>
+<p>在<code>geom_errorbar</code>函数的<code>aes</code>中，我将因变量减去标准误的值指定为误差棒的下限，并将因变量加上标准误的值指定为误差棒的上限，并通过<code>position = position_dodge(.6)</code>参数，使其出现在直条的中间。不同情况下这个数字是不同的，我有时用.9，有时用0，目前我还不知道有什么标准可以参考，不过这个位置试几次就可以试出来。</p>
+<p>此时我要呈现的图形已经基本完成了，但目前还有个问题，即y轴不是从零开始的（異世界生活），导致直条图都在空中飘着，这时可以通过一行代码使其落地：</p>
+<pre class="r"><code>dl %&gt;% group_by(number, word) %&gt;% 
+  summarise(mndt = mean(mean_ndt), se = sd(mean_ndt)/sqrt(n())) %&gt;% 
+  ggplot(aes(word, mndt, fill = number)) + 
+  geom_col(position = position_dodge(), width = .6) + 
+  geom_errorbar(aes(ymin = mndt - se, ymax = mndt + se), 
+                position = position_dodge(.6), width = .2) +
+  scale_y_continuous(expand = c(0, 0))</code></pre>
+<p><img src="/blog/analysis_of_oculomoter_data_with_tidyverse_files/figure-html/unnamed-chunk-29-1.png" width="672" /></p>
+<p>接下来我通过<code>labs</code>函数为图形添加了标题，并更改了坐标轴和图例的标题。因为之前用的是<code>fill</code>生成的图例，所以这里也要写<code>fill</code>；如果之前用的是<code>color</code>、<code>shape</code>或<code>size</code>等参数，这里也要做相应的更改：</p>
+<pre class="r"><code>dl %&gt;% group_by(number, word) %&gt;% 
+  summarise(mndt = mean(mean_ndt), se = sd(mean_ndt)/sqrt(n())) %&gt;% 
+  ggplot(aes(word, mndt, fill = number)) + 
+  geom_col(position = position_dodge(), width = .6) + 
+  geom_errorbar(aes(ymin = mndt - se, ymax = mndt + se), 
+                position = position_dodge(.6), width = .2) +
+  scale_y_continuous(expand = c(0, 0)) + 
+  labs(title = &#39;Experiment 1&#39;, x = &#39;Word&#39;, y = &#39;Mean Net Dwell Time (ms)&#39;,
+       fill = &#39;Number&#39;)</code></pre>
+<p><img src="/blog/analysis_of_oculomoter_data_with_tidyverse_files/figure-html/unnamed-chunk-30-1.png" width="672" /></p>
+<p>然后我对颜色作了一些更改。在<code>RColorBrewer</code>包中有些<strong>palette</strong>（调色板）可供<code>ggplot2</code>使用，可以在<strong>R</strong>中输入<code>RColorBrewer::display.brewer.all()</code>查看。其中一些调色板适合连续性变量，而另一些适合离散型变量，可以根据自己的需要进行选择。这里我使用了<strong>Set1</strong>，另外，在<code>scale_fill_brewer</code>函数中也有<code>fill</code>，原因同上：</p>
+<pre class="r"><code>dl %&gt;% group_by(number, word) %&gt;% 
+  summarise(mndt = mean(mean_ndt), se = sd(mean_ndt)/sqrt(n())) %&gt;% 
+  ggplot(aes(word, mndt, fill = number)) + 
+  geom_col(position = position_dodge(), width = .6) + 
+  geom_errorbar(aes(ymin = mndt - se, ymax = mndt + se), 
+                position = position_dodge(.6), width = .2) +
+  scale_y_continuous(expand = c(0, 0)) + 
+  labs(title = &#39;Experiment 1&#39;, x = &#39;Word&#39;, y = &#39;Mean Net Dwell Time (ms)&#39;,
+       fill = &#39;Number&#39;) + 
+  scale_fill_brewer(palette = &#39;Set1&#39;)</code></pre>
+<p><img src="/blog/analysis_of_oculomoter_data_with_tidyverse_files/figure-html/unnamed-chunk-31-1.png" width="672" /></p>
+<p>似乎是好看一点了。接下来要对<strong>theme</strong>（主题）进行更改。<code>ggplot2</code>自带了一些主题，另外，还可以通过添加<code>ggtheme</code>包来解锁更多的主题。这里我使用了<code>theme_classic</code>主题：</p>
+<pre class="r"><code>dl %&gt;% group_by(number, word) %&gt;% 
+  summarise(mndt = mean(mean_ndt), se = sd(mean_ndt)/sqrt(n())) %&gt;% 
+  ggplot(aes(word, mndt, fill = number)) + 
+  geom_col(position = position_dodge(), width = .6) + 
+  geom_errorbar(aes(ymin = mndt - se, ymax = mndt + se), 
+                position = position_dodge(.6), width = .2) +
+  scale_y_continuous(expand = c(0, 0)) + 
+  labs(title = &#39;Experiment 1&#39;, x = &#39;Word&#39;, y = &#39;Mean Net Dwell Time (ms)&#39;,
+       fill = &#39;Number&#39;) + 
+  scale_fill_brewer(palette = &#39;Set1&#39;) + 
+  theme_classic()</code></pre>
+<p><img src="/blog/analysis_of_oculomoter_data_with_tidyverse_files/figure-html/unnamed-chunk-32-1.png" width="672" /></p>
+<p>整张图简洁了不少，但还有一些地方需要修改，于是我又在<code>theme</code>内添加了一些参数：</p>
+<pre class="r"><code>dl %&gt;% group_by(number, word) %&gt;% 
+  summarise(mndt = mean(mean_ndt), se = sd(mean_ndt)/sqrt(n())) %&gt;% 
+  ggplot(aes(word, mndt, fill = number)) + 
+  geom_col(position = position_dodge(), width = .6) + 
+  geom_errorbar(aes(ymin = mndt - se, ymax = mndt + se), 
+                position = position_dodge(.6), width = .2) +
+  scale_y_continuous(expand = c(0, 0)) + 
+  labs(title = &#39;Experiment 1&#39;, x = &#39;Word&#39;, y = &#39;Mean Net Dwell Time (ms)&#39;,
+       fill = &#39;Number&#39;) + 
+  scale_fill_brewer(palette = &#39;Set1&#39;) + 
+  theme_classic() + 
+  theme(plot.title = element_text(hjust = .5, size = 18), 
+        axis.ticks = element_blank(),
+        legend.position = &#39;top&#39;)</code></pre>
+<p><img src="/blog/analysis_of_oculomoter_data_with_tidyverse_files/figure-html/unnamed-chunk-33-1.png" width="672" /></p>
+<p>因为标题在默认情况下是左对齐，所以我通过<code>plot.title = element_text(hjust = .5, size = 18)</code>将其设为居中，并将标题字体大小改为18号；随后使用<code>axis.ticks = element_blank()</code>去掉了坐标轴上的刻度；最后使用<code>legend.position = 'top'</code>将图例调整到了上方。由于个人审美能力有限，到这里我自己已经很满意了。这一部分也到此为止。</p>
+</div>
+<div class="section level2">
+<h2>数据分析</h2>
+<p>近年来，使用线性混合模型分析眼动数据开始流行起来，有一份<strong>R</strong>代码在各研究者之间流传（估计全国研究这一领域的都是用的同一份代码），但这份代码写的比较凌乱且臃肿。之前和同学（组织这篇文章内容时心里所想的默认读者）开始着手重写这份代码，但只开了个头，她就跑到其他省做实验去了，至今也没有回来。我的统计水平不足以使我独自继续这项任务，因此计划便搁浅了，如果将来有机会的话，我希望能结合着线性混合模型再写一篇眼动分析的文章。但是这一部分也不能空着，因此先丢个方差分析的代码：</p>
+<pre class="r"><code>aov(mean_ndt ~ factor(number) * factor(word) + 
+      Error(factor(sub)/(factor(number) * factor(word))), dl) %&gt;% summary()</code></pre>
+<pre><code>## 
+## Error: factor(sub)
+##           Df   Sum Sq Mean Sq F value Pr(&gt;F)
+## Residuals 46 40839989  887826               
+## 
+## Error: factor(sub):factor(number)
+##                Df   Sum Sq Mean Sq F value   Pr(&gt;F)    
+## factor(number)  2  5576551 2788275   7.665 0.000833 ***
+## Residuals      92 33464426  363744                     
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Error: factor(sub):factor(word)
+##              Df   Sum Sq Mean Sq F value   Pr(&gt;F)    
+## factor(word)  1  7525234 7525234   20.86 3.69e-05 ***
+## Residuals    46 16593026  360718                     
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Error: factor(sub):factor(number):factor(word)
+##                             Df   Sum Sq Mean Sq F value Pr(&gt;F)
+## factor(number):factor(word)  2   493590  246795   0.594  0.554
+## Residuals                   92 38220918  415445</code></pre>
+<p>在<code>aov</code>函数中，先要把公式写前面，而且在公式中，自变量要改为<strong>factor</strong>（因子型），另外由于这个实验是被试内设计，所以还要通过<code>Error</code>参数指定被试内变量。公式之后的参数是数据名，最后通过管道操作符出将结果传递给<code>summary</code>函数，方差分析的结果就展示了出来。因为数据做了修改，所以就不针对结果进行说明了。</p>
+</div>
+<div class="section level2">
+<h2>其他问题</h2>
+<p>这篇文章没有涉及到异常值的处理，因为我不知道标准。如果知道标准的话，一行<code>filter</code>就可以解决问题。另外，这篇文章也没有涉及到缺失值的处理，因为我不是研究眼动的，这一点超出我的能力了。</p>
+<p>最后，无偿地打个广告。想进一步学习<strong>R</strong>（或python）的同学，可以去<a href="https://www.datacamp.com">DataCamp</a>。这个网站今年得到了300万刀的投资，目前正在大张旗鼓地扩展课程，包括<strong>Hadley Wickham</strong>、<strong>Garrett Grolemund</strong>、<strong>David Robinson</strong>等<strong>R</strong>社区的知名人物都是这个网站的instructor。只需要几百刀，就可以在一年的时间内学习网站内的所有课程（目前有105门课），比某些网站一门课都要几百刀划算多了。</p>
+<p>用了两个半天的时间，终于把这篇文章写完了。这是我写的第一篇关于<strong>R</strong>的文章，肯定有很多不足的地方，希望读者不要介意。接下来，我要稍事休息，然后通过重温《凉宫春日的消失》来度过圣诞节（本文写于17年12月24日）啦，哈哈哈！</p>
+<div class="figure">
+<img src="/img/lianggong.jpg" />
+
+</div>
+</div>
+
+
+</div>
+
+    <div class="">
+        <p>
+  Published
+  
+    
+      by <span itemprop="author">孟祥良</span>
+    
+  
+  <time datetime="2017-12-25T00:00:00&#43;00:00">
+    25 Dec, 2017
+  </time>
+  
+    in <span itemprop="articleSection"><a href="/categories/%E5%BF%83%E7%90%86%E5%AD%A6%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90/">心理学数据分析</a></span>
+  
+  
+    and tagged <a href="/tags/tidyverse/">Tidyverse</a> and <a href="/tags/%E7%9C%BC%E5%8A%A8/">眼动</a>
+  
+  using <span itemprop="wordCount">2612</span> words.
+</p>
+
+        
+
+
+
+    </div>
+    
+    
+    
+</div>
+</div>
+</main>
+  <footer>   <footer id="footer">
+    <nav>
+      <ul>
+        <li><span>PsychoR</span></li>
+        <li>
+          <a href="/blog/">Blog</a>
+        <li>
+          <a href="/company/">Team</a>
+        </li>
+        </li>
+    
+      </ul>
+    </nav>
+    <p>&copy; CC BY-NC 4.0</p>
+  </footer> </footer>
+
+
+  <script src="/js/kube.js" type="text/javascript">
+  </script>
+  <script src="/js/kube.legenda.js" type="text/javascript">
+  </script>
+  <script src="/js/master.js" type="text/javascript">
+  </script>
+</body>
+
+</html>

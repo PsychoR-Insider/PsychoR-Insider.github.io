@@ -1,0 +1,403 @@
+---
+title: 使用tidyverse处理眼动数据
+author: 孟祥良
+date: '2017-12-25'
+slug: tidyverse
+categories: [心理学数据分析]
+tags:
+  - Tidyverse
+  - 眼动
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+`Tidyverse` 是由**Hadley Wickham**开发的一系列非常实用的**R**包的合集，涉及到数据导入、转换、清洗以及可视化等数据分析中必不可少的环节。本文的目的在于通过一个简单的眼动数据分析的实例，介绍一下`tidyverse`的基本知识，并分享一些相关的资料。本文面向的是对**R**有一定的了解，但对`tidyverse`不是很了解，并且是在**RStudio**中使用**R**的用户。
+
+## 载入tidyverse
+
+```{r}
+library(tidyverse)
+```
+
+载入`tidyverse`后，可以看到有8个包被同时载入，这8个包分别是：
+
+ - `ggplot2`：用于可视化
+ - `tibble`：`data.frame`（数据框）的加强版
+ - `tidyr`：用于数据转换（长、宽数据之间的转换，以及列的分离与合并）
+ - `readr`：用于数据的输入与输出
+ - `purrr`：用于编程
+ - `dplyr`：用于数据清洗
+ - `stringr`：用于处理字符型数据
+ - `forcats`：用于处理因子型数据
+ 
+同时，也可以看到`tidyverse`系列中的函数与之前存在的哪些函数存在冲突，如果此时你还想使用`stats`包中的`filter`函数，需要在`filter`函数前指定包名，即写成`stats：：filter`形式。
+
+此外，通过**forcat**（factor中字母的重新组合）以及**purr**（意指猫咕噜咕噜叫的声音）两个包名，也可以了解到，**Hadley** sama应该是很喜欢猫的（跟我一样）。
+
+一般来说，我的第一行代码都会是`library(tidyverse)`，但很多人似乎习惯于将`setwd(theirpath)`，或`rm(list = ls())`写在最前面。这两行代码使**Bryan**大姐大动肝火，愤怒的仿佛**FFF团团员**见到了**异性恋**。她为什么不建议使用这两行代码呢？请参看[Project-oriented workflow](https://www.tidyverse.org/articles/2017/12/workflow-vs-script/)。简单来说，`setwd()`不具备可移植性，而`rm(list = ls())`只能清理全局工作空间中的对象，如果想要一个干净的环境，最好还是使用**Ctrl+Shift+F10**重起**R**。
+
+另外，如果想系统学习`tidyverse`，请点击[R for Data Science](http://r4ds.had.co.nz/index.html)。目前这本书只有英文版，不过，听说厦门大学的任坤正在翻译这本书，希望这本书的中文版早日面世。
+
+## 数据导入
+
+首先，要将数据导入**R**中。因为本文只涉及到一个数据文件，因此我就新建了一个project(File->New Project)，并把这个文件丢到了该Project文件夹下。
+
+数据导入的代码如下：
+
+```{r}
+dl <- read_csv('dl.csv')
+```
+
+在这里，我使用的是`readr`包里的`read_csv`函数，与`base`包里的`read.csv`函数相比，这个函数的速度更快。运行完之后，可以看到很多信息。这不是错误，也不是警告，只是告知我们每一列数据被解析成了什么类型，如果有那一列的数据类型不是我们所预期的，我们可以即时发现并作出更改。另外，通过`readr`包所导入的数据会自动的转成`tibble`格式。
+
+对于`tidyverse`中的每一个核心包，[Tidyverse](https://www.tidyverse.org/)网站中都有相应的介绍。
+
+## 数据清洗
+
+`tibble`格式相较于`data.frame`格式的优势在于，默认情况下只显示前10行数据，并会显示数据的行数与列数以及每一列的数据类型，这样就无需额外使用`str`等函数来查看相关的信息。
+
+通过直接输入数据名，我们来看一下这个数据：
+
+```{r}
+dl
+```
+
+可以看到，这份数据有13000多行，30列变量。第一列是试次编号，第二列是被试名，后面分别有颜色、刺激物、兴趣区以及各种眼动指标。这份数据其实包含了两个实验，并且预实验被试的数据也留在了里面，后面会把这些问题都解决掉，但现在我要先停下来，介绍一下什么是**Tidy Data**。
+
+**Tidy Data**是一种数据格式，有三条原则，分别是：
+
+- Each variable forms a column.
+
+- Each observation forms a row.
+
+- Each type of observational unit forms a table.
+
+前两条原则很好理解，就是每种变量（如被试编号、性别、年龄、实验条件、反应时、正确率等）形成一列，每个观测（如性别×组别两因素实验中，控制组男被试在某试次下的一个因变量数据）形成一行。对于第三条原则，在查阅了相应的文档之后，我认为它是指一个表格里只能放一种因变量。关于**Tidy Data**的详细内容，可在前面提到的**tidyverse**网站中找到，也可以在**R**中通过`tidyr`包找到相应的文档。**R**里面的大部分分析都要求数据满足**Tidy Data**格式，当然，这也不是绝对的，比如t检验，满足与不满足均可。
+
+根据**Tidy Data**的第三条原则，我这次分析只选择了总注视时间这一个眼动指标。此外，我还选择了试次编号、被试名、刺激物以及兴趣区四列。在对列进行选择时，要用到`dplyr`包中的`select`函数。此时的代码如下：
+
+```{r message = FALSE}
+dl <- read_csv("dl.csv") %>% 
+  select(trial = 1, sub = 2, stimuli = 4, aoi = 5, net_dt = 15)
+```
+
+在这里，我用到了管道操作符`%>%`。它的作用是将其左边操作所生成的数据传递到其右边函数的第一个参数位置上（通过某种操作也可传递到其他位置上），其快捷键是**Ctrl+Shift+M**（另外，赋值符**<-**的快捷键是**Alt+-**）。使用管道操作符，可以在保证代码具有条理性的前提之下，减少中间变量的命名（给中间变量起名是一件非常耗时的事情）与重复输入。因为`tidyverse`包函数中第一个参数位置上一般都是数据名，所以管道操作符可以很好地与`tidyverse`搭配使用。管道操作符属于`magrittr`包，但载入`tidyverse`包会将其自动载入。管道操作符并不是只有这一种，若想进一步了解管道操作符，请看[Pipes in R Tutorial For Beginners](https://www.datacamp.com/community/tutorials/pipe-r-tutorial)。另外，`pipeR`包也提供了一系列管道操作符，非常实用，其作者是之前提到的任坤。
+
+`tidyverse`有一个原则，即每个函数只做一件事情（忘了在哪里看到的了）。但是`select`函数就违背了这一原则，因为它至少可以做三件事情。一是对列进行选择，二是对所选择的列进行重命名，三是对所选择的列进行排序。在上面的代码中，我从原始数据中选择了5列，并重新给变量命了名，这时的数据是这样的：
+
+```{r}
+dl
+```
+
+需要的列已经挑选了出来，接下来该针对行进行处理了。在处理之前，我先用`unique`函数对兴趣区内的元素进行了查看。`unique`函数的作用是去掉重复的元素。这一步的代码如下：
+
+```{r}
+unique(dl$aoi)
+```
+
+可以看到，一共有3个兴趣区以及一个“White Space”。当被试看到“white Space”时，数据是无效的，因此要清理掉。在针对行进行清理时，要用到`dplyr`包中的`filter`函数，它可以根据相应的条件，剔除某些行。此时的代码如下：
+
+```{r message = FALSE}
+dl <- read_csv("dl.csv") %>%
+  select(trial = 1, sub = 2, stimuli = 4, aoi = 5, net_dt = 15) %>%
+  filter(aoi != "White Space")
+```
+
+`filter`函数在这里的作用是将**aoi**变量中不是(`!`)”White Space“的行保留下来。此时的数据是这样的，可以看到，在剔除了一部分无用数据之后，行数已经从13000多行减少到了9000多行：
+
+```{r}
+dl
+```
+
+先前提到，这个数据中还有一部分预实验被试的数据，在正式分析之前，我们还要将这些被试的数据剔除掉。这一步还是要用到`filter`函数，但在处理之前，要先建立一个包含了预实验被试名的字符串。这一行代码如下：
+
+```{r}
+sub_pre <- c("P01", "lhj", "xyn", "WCF", "YYH", "CBL", "MJC", "FZL", "XC (1)", "WW", "LJY")
+```
+
+接下来就可以使用`filter`将预实验被试数据清理掉了。此时的代码如下：
+
+```{r message = FALSE}
+dl <- read_csv("dl.csv") %>%
+  select(trial = 1, sub = 2, stimuli = 4, aoi = 5, net_dt = 15) %>%
+  filter(aoi != "White Space") %>%
+  filter(!sub %in% sub_pre) 
+```
+
+这里用到了`%in%`函数，这是一个用来匹配的函数，其用法可在**R**中输入`?match`查看。举个简单的例子，当输入：
+
+```{r}
+1:10 %in% 1:3
+```
+
+时，可以看到前3个值返回了**TRUE**，而后面都是**FALSE**，因为左边数据中只有前3个元素与右边匹配。在之前的代码中，我将**sub**列与**sub_pre**进行匹配，随后又使用逻辑非(**!**)反向选择，进而剔除了预实验被试。此时数据如下，可以看到行数进一步减少到了8000多行：
+
+```{r}
+dl
+```
+
+接下来要对自变量进行处理。这份数据所包含的两个实验都是二因素实验，而这两个因素都包含在**stimuli**这一列变量中，这一点违背了**Tidy Data**的第一个原则，即一种变量形成一列，而不是两个变量同在一列。先看一下**stimuli**列中的元素：
+
+```{r}
+unique(dl$stimuli)
+```
+
+实验1中因素1有3个水平（1，2，3），因素2有2个水平（d，g）；实验2中因素1有3个水平（1，2，3），因素2有6个水平（s1，s2，s3，s4，s5，s6）。后面的“.jpg“以及前面的1位数字（包括”_“）都是没有用的信息，可以去掉。这里要用到`dplyr`包中的`mutate`函数（用来在已有变量的基础上生成新变量或改写已有变量）和`stringr`包中的`str_replace`函数（用来替换），以及一点点正则表达式的知识。关于正则表达式相关内容，可以通过在**R**中输入`?regex`进行查看。此时的代码如下：
+
+```{r message = FALSE}
+dl <- read_csv("dl.csv") %>%
+  select(trial = 1, sub = 2, stimuli = 4, aoi = 5, net_dt = 15) %>%
+  filter(aoi != "White Space") %>%
+  filter(!sub %in% sub_pre) %>%
+  mutate(stimuli = str_replace(stimuli, "\\d_{0,}.jpg", ""))
+```
+
+这一行代码的意思是指针对**stimuli**列，用""替换符合"\\\\d_{0,}.jpg"这一表达式的内容（其中"\\\\d"用来匹配数字，"\_{0,}"用来匹配0个或多个"\_"），因为""中没有任何东西，其作用就是删除。替换之后，覆盖之前的**stimuli**列。此时数据及**stimuli**列中的元素如下：
+
+```{r}
+dl
+```
+
+```{r}
+unique(dl$stimuli)
+```
+
+虽然两个实验的数据混在了一起，但幸运的是两个实验的条件1的水平都是一位数字，这时可以通过使用`tidyr`包中的`separate`函数轻松地将两个自变量分离开来。此时的代码如下：
+
+```{r message = FALSE}
+dl <- read_csv("dl.csv") %>%
+  select(trial = 1, sub = 2, stimuli = 4, aoi = 5, net_dt = 15) %>%
+  filter(aoi != "White Space") %>%
+  filter(!sub %in% sub_pre) %>%
+  mutate(stimuli = str_replace(stimuli, "\\d_{0,}.jpg", "")) %>%
+  separate(stimuli, c("number", "word"), sep = 1)
+```
+
+通过这一行代码的操作，原先的**stimuli**列分离成了**number**和**word**两个新列。
+
+```{r}
+dl
+```
+
+这时，我们可以使用`dplyr`包中的`arrange`函数以及之前使用过的`select`函数对行与列进行排序，并去掉已经没有用的**aoi**列。`arrange`函数默认是按升序排列，可以通过在参数前面加上`desc()`或`-`改为降序排列。此时代码如下：
+
+```{r message = FALSE}
+dl <- read_csv("dl.csv") %>%
+  select(trial = 1, sub = 2, stimuli = 4, aoi = 5, net_dt = 15) %>%
+  filter(aoi != "White Space") %>%
+  filter(!sub %in% sub_pre) %>%
+  mutate(stimuli = str_replace(stimuli, "\\d_{0,}.jpg", "")) %>%
+  separate(stimuli, c("number", "word"), sep = 1) %>%
+  arrange(sub, trial) %>%
+  select(2, 1, 3, 4, 6)
+```
+
+结果如下：
+
+```{r}
+dl
+```
+
+接下来要对数据进行简单的描述统计计算，这时要用到`dplyr`包中的`group_by`和`summarise`组合。`group_by`用来针对变量进行分组，`summarise`用来进行计算，并在计算之后生成新的数据。此时代码如下：
+
+```{r message = FALSE}
+dl <- read_csv("dl.csv") %>%
+  select(trial = 1, sub = 2, stimuli = 4, aoi = 5, net_dt = 15) %>%
+  filter(aoi != "White Space") %>%
+  filter(!sub %in% sub_pre) %>%
+  mutate(stimuli = str_replace(stimuli, "\\d_{0,}.jpg", "")) %>%
+  separate(stimuli, c("number", "word"), sep = 1) %>% 
+  arrange(sub, trial) %>%
+  select(2, 1, 3, 4, 6) %>%
+  group_by(sub, number, word) %>%
+  summarise(mean_ndt = mean(net_dt))
+```
+
+结果如下：
+
+```{r}
+dl
+```
+
+这两行代码通过对被试及两个自变量进行分组，并计算各条件下所有试次的总注视时间的平均值，得到了新的数据。接下来，只要将两个实验的数据进行分离，即可完成数据清洗的工作。此时代码如下：
+
+```{r message = FALSE}
+dl <- read_csv("dl.csv") %>%
+  select(trial = 1, sub = 2, stimuli = 4, aoi = 5, net_dt = 15) %>%
+  filter(aoi != "White Space") %>%
+  filter(!sub %in% sub_pre) %>%
+  mutate(stimuli = str_replace(stimuli, "\\d_{0,}.jpg", "")) %>%
+  separate(stimuli, c("number", "word"), sep = 1) %>%
+  arrange(sub, trial) %>%
+  select(2, 1, 3, 4, 6) %>%
+  group_by(sub, number, word) %>%
+  summarise(mean_ndt = mean(net_dt)) %>%
+  filter(word %in% c("d", "g"))
+```
+
+这里再一次用到了`filter`和`%in%`的组合。如果要把实验2的数据筛选出来，只需要在**word**之前加上一个`!`即可。这时数据清洗的工作已基本完成，数据已经完全符合**Tidy Data**的格式：
+
+```{r}
+dl
+```
+
+后面要对数据进行可视化处理，但由于这份数据并不是我的，我觉得还是不要把数据的真实情况展示出来的好，所以我进行了一些处理，此时的代码如下，这一串代码到此结束：
+
+```{r message = FALSE}
+dl <- read_csv("dl.csv") %>%
+  select(trial = 1, sub = 2, stimuli = 4, aoi = 5, net_dt = 15) %>%
+  filter(aoi != "White Space") %>%
+  filter(!sub %in% sub_pre) %>%
+  mutate(stimuli = str_replace(stimuli, "\\d_{0,}.jpg", "")) %>%
+  separate(stimuli, c("number", "word"), sep = 1) %>%
+  arrange(sub, trial) %>%
+  select(2, 1, 3, 4, 6) %>%
+  group_by(sub, number, word) %>%
+  summarise(mean_ndt = mean(net_dt)) %>%
+  filter(word %in% c("d", "g")) %>%
+  mutate(mean_ndt = mean_ndt + sample(-1000:1000, n(), replace = T))
+```
+
+
+## 数据可视化
+
+在进行可视化之前，先要简单地介绍一下`ggplot2`包。`ggplot2`是`tidyverse`中用来绘图的包，其中**gg**两个字母代表的是**grammar of graphics**，即图形语法，整个`ggplot2`就是建立在这一基础之上。关于图形语法的详细内容，请参看**Hadley** sama的论文[A Layered Grammar of Graphics](http://www.tandfonline.com/doi/abs/10.1198/jcgs.2009.07098)。简单来说，就像英语语法中会有“主谓宾定状补”等成分一样，`ggplot2`中也有不同的语法成分，通过这些语法成分的组合，就可以画出各种各样的图。其中**data**（数据）、**aesthetics**（美学映射，用来将数据中的变量映射到图形上）以及**geometries**（几何形状，以哪种形式呈现，点、线、条、箱等等）三种成分是必须的，此外，本文还主要涉及到**theme**（主题，用来对非数据内容进行调整，使图形更美观）成分。
+
+若要系统学习`ggplot2`，可以看**Hadley**自己写的的[ggplot2：数据分析与图形艺术](https://item.jd.com/11228891.html)。这本书现在已经有了第二版，但网上没有电子版，而且也不知道有没有人在翻译这个新版本。另外，有本尚未完成的关于`ggplot2`的书[Data Visualization for Social Science: A practical introduction with R and ggplot2](http://socviz.co/)，个人感觉挺不错的，有兴趣的可以看一看。
+
+在这一部分，我将把之前生成的数据以带有误差棒的直条图的形式呈现出来。首先，我要对数据再进行一些处理，这次针对两个自变量进行分组，并额外计算出标准误，此时的代码如下，由于我不知道直接计算标准误的函数，所以写的稍微复杂了点，可以看到，新数据是6行4列：
+
+```{r}
+dl %>% group_by(number, word) %>% 
+  summarise(mndt = mean(mean_ndt), se = sd(mean_ndt)/sqrt(n())) 
+```
+
+接下来我就要在此数据的基础上画出一个直条图来，这个图暂时只包括最基本的三种成分。此时的代码如下：
+
+```{r}
+dl %>% group_by(number, word) %>% 
+  summarise(mndt = mean(mean_ndt), se = sd(mean_ndt)/sqrt(n())) %>% 
+  ggplot(aes(word, mndt, fill = number)) + 
+  geom_col(position = position_dodge(), width = .6)
+```
+
+`ggplot`是`ggplot2`包中的最基本函数，可以在其中指定数据（由于用了管道操作符，所以不需要这一步了）以及映射。写在`ggplot`内的`aes`（映射）可以为后面的所有`geom_`系列和`stat_`系列函数共用，由于后面还要画误差棒，所以我就把`aes`函数放在了`ggplot`中，而实际上`aes`也是可以写在`geom_col`中的。在`aes`中，第一个参数位置上的自变量**word**指将其映射到x轴上，第二个参数位置上的因变量**mndt**指将其映射到y轴上，后面的`fill = number`指将自变量**number**映射到颜色特征上，这里`fill`指的是填充色，如果要使用非填充色（如点、线或直条图的边框等），则要使用`color`参数。
+
+后面我使用了`geom_col`来画直条图。实际上画直条图还可以使用`geom_bar`，但是由于每一种`geom`都对应着一种**statistics**（统计变换），而`geom_bar`函数对应的统计变换是**count**（计数），需要额外指定`stat = 'identity'`（意为不做任何统计变换），才能保证我们的因变量映射到y轴上，而使用`geom_col`则不需要额外指定这一参数。在`geom_col`函数中，默认的位置呈现方式是**stack**（堆叠），为了使直条并排呈现，我使用了`position = position_dodge()`参数，此外还通过`width`参数改变了每个直条的宽度。
+
+接下来要添加误差棒，此时的代码如下：
+
+```{r}
+dl %>% group_by(number, word) %>% 
+  summarise(mndt = mean(mean_ndt), se = sd(mean_ndt)/sqrt(n())) %>% 
+  ggplot(aes(word, mndt, fill = number)) + 
+  geom_col(position = position_dodge(), width = .6) + 
+  geom_errorbar(aes(ymin = mndt - se, ymax = mndt + se), 
+                position = position_dodge(.6), width = .2)
+```
+
+在`geom_errorbar`函数的`aes`中，我将因变量减去标准误的值指定为误差棒的下限，并将因变量加上标准误的值指定为误差棒的上限，并通过`position = position_dodge(.6)`参数，使其出现在直条的中间。不同情况下这个数字是不同的，我有时用.9，有时用0，目前我还不知道有什么标准可以参考，不过这个位置试几次就可以试出来。
+
+此时我要呈现的图形已经基本完成了，但目前还有个问题，即y轴不是从零开始的（異世界生活），导致直条图都在空中飘着，这时可以通过一行代码使其落地：
+
+```{r}
+dl %>% group_by(number, word) %>% 
+  summarise(mndt = mean(mean_ndt), se = sd(mean_ndt)/sqrt(n())) %>% 
+  ggplot(aes(word, mndt, fill = number)) + 
+  geom_col(position = position_dodge(), width = .6) + 
+  geom_errorbar(aes(ymin = mndt - se, ymax = mndt + se), 
+                position = position_dodge(.6), width = .2) +
+  scale_y_continuous(expand = c(0, 0))
+```
+
+接下来我通过`labs`函数为图形添加了标题，并更改了坐标轴和图例的标题。因为之前用的是`fill`生成的图例，所以这里也要写`fill`；如果之前用的是`color`、`shape`或`size`等参数，这里也要做相应的更改：
+
+```{r}
+dl %>% group_by(number, word) %>% 
+  summarise(mndt = mean(mean_ndt), se = sd(mean_ndt)/sqrt(n())) %>% 
+  ggplot(aes(word, mndt, fill = number)) + 
+  geom_col(position = position_dodge(), width = .6) + 
+  geom_errorbar(aes(ymin = mndt - se, ymax = mndt + se), 
+                position = position_dodge(.6), width = .2) +
+  scale_y_continuous(expand = c(0, 0)) + 
+  labs(title = 'Experiment 1', x = 'Word', y = 'Mean Net Dwell Time (ms)',
+       fill = 'Number')
+```
+
+然后我对颜色作了一些更改。在`RColorBrewer`包中有些**palette**（调色板）可供`ggplot2`使用，可以在**R**中输入`RColorBrewer::display.brewer.all()`查看。其中一些调色板适合连续性变量，而另一些适合离散型变量，可以根据自己的需要进行选择。这里我使用了**Set1**，另外，在`scale_fill_brewer`函数中也有`fill`，原因同上：
+
+```{r}
+dl %>% group_by(number, word) %>% 
+  summarise(mndt = mean(mean_ndt), se = sd(mean_ndt)/sqrt(n())) %>% 
+  ggplot(aes(word, mndt, fill = number)) + 
+  geom_col(position = position_dodge(), width = .6) + 
+  geom_errorbar(aes(ymin = mndt - se, ymax = mndt + se), 
+                position = position_dodge(.6), width = .2) +
+  scale_y_continuous(expand = c(0, 0)) + 
+  labs(title = 'Experiment 1', x = 'Word', y = 'Mean Net Dwell Time (ms)',
+       fill = 'Number') + 
+  scale_fill_brewer(palette = 'Set1')
+```
+
+似乎是好看一点了。接下来要对**theme**（主题）进行更改。`ggplot2`自带了一些主题，另外，还可以通过添加`ggtheme`包来解锁更多的主题。这里我使用了`theme_classic`主题：
+
+```{r}
+dl %>% group_by(number, word) %>% 
+  summarise(mndt = mean(mean_ndt), se = sd(mean_ndt)/sqrt(n())) %>% 
+  ggplot(aes(word, mndt, fill = number)) + 
+  geom_col(position = position_dodge(), width = .6) + 
+  geom_errorbar(aes(ymin = mndt - se, ymax = mndt + se), 
+                position = position_dodge(.6), width = .2) +
+  scale_y_continuous(expand = c(0, 0)) + 
+  labs(title = 'Experiment 1', x = 'Word', y = 'Mean Net Dwell Time (ms)',
+       fill = 'Number') + 
+  scale_fill_brewer(palette = 'Set1') + 
+  theme_classic()
+```
+
+整张图简洁了不少，但还有一些地方需要修改，于是我又在`theme`内添加了一些参数：
+
+```{r}
+dl %>% group_by(number, word) %>% 
+  summarise(mndt = mean(mean_ndt), se = sd(mean_ndt)/sqrt(n())) %>% 
+  ggplot(aes(word, mndt, fill = number)) + 
+  geom_col(position = position_dodge(), width = .6) + 
+  geom_errorbar(aes(ymin = mndt - se, ymax = mndt + se), 
+                position = position_dodge(.6), width = .2) +
+  scale_y_continuous(expand = c(0, 0)) + 
+  labs(title = 'Experiment 1', x = 'Word', y = 'Mean Net Dwell Time (ms)',
+       fill = 'Number') + 
+  scale_fill_brewer(palette = 'Set1') + 
+  theme_classic() + 
+  theme(plot.title = element_text(hjust = .5, size = 18), 
+        axis.ticks = element_blank(),
+        legend.position = 'top')
+```
+
+因为标题在默认情况下是左对齐，所以我通过`plot.title = element_text(hjust = .5, size = 18)`将其设为居中，并将标题字体大小改为18号；随后使用`axis.ticks = element_blank()`去掉了坐标轴上的刻度；最后使用`legend.position = 'top'`将图例调整到了上方。由于个人审美能力有限，到这里我自己已经很满意了。这一部分也到此为止。
+
+
+## 数据分析
+
+近年来，使用线性混合模型分析眼动数据开始流行起来，有一份**R**代码在各研究者之间流传（估计全国研究这一领域的都是用的同一份代码），但这份代码写的比较凌乱且臃肿。之前和同学（组织这篇文章内容时心里所想的默认读者）开始着手重写这份代码，但只开了个头，她就跑到其他省做实验去了，至今也没有回来。我的统计水平不足以使我独自继续这项任务，因此计划便搁浅了，如果将来有机会的话，我希望能结合着线性混合模型再写一篇眼动分析的文章。但是这一部分也不能空着，因此先丢个方差分析的代码：
+
+```{r}
+aov(mean_ndt ~ factor(number) * factor(word) + 
+      Error(factor(sub)/(factor(number) * factor(word))), dl) %>% summary()
+```
+
+在`aov`函数中，先要把公式写前面，而且在公式中，自变量要改为**factor**（因子型），另外由于这个实验是被试内设计，所以还要通过`Error`参数指定被试内变量。公式之后的参数是数据名，最后通过管道操作符出将结果传递给``summary``函数，方差分析的结果就展示了出来。因为数据做了修改，所以就不针对结果进行说明了。
+
+
+## 其他问题
+
+这篇文章没有涉及到异常值的处理，因为我不知道标准。如果知道标准的话，一行`filter`就可以解决问题。另外，这篇文章也没有涉及到缺失值的处理，因为我不是研究眼动的，这一点超出我的能力了。
+
+最后，无偿地打个广告。想进一步学习**R**（或python）的同学，可以去[DataCamp](https://www.datacamp.com)。这个网站今年得到了300万刀的投资，目前正在大张旗鼓地扩展课程，包括**Hadley Wickham**、**Garrett Grolemund**、**David Robinson**等**R**社区的知名人物都是这个网站的instructor。只需要几百刀，就可以在一年的时间内学习网站内的所有课程（目前有99门课），比某些网站一门课都要几百刀划算多了。
+
+用了两个半天的时间，终于把这篇文章写完了。这是我写的第一篇关于**R**的文章，肯定有很多不足的地方，希望读者不要介意。接下来，我要稍事休息，然后通过重温《凉宫春日的消失》来度过圣诞夜啦，哈哈哈！
+
+![](lianggong.bmp)
