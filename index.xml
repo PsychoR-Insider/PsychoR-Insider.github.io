@@ -17,8 +17,10 @@
       <pubDate>Mon, 25 Dec 2017 00:00:00 +0000</pubDate>
       
       <guid>/blog/tidyverse-for-eyemovement/</guid>
-      <description>Tidyverse 是由Hadley Wickham开发的一系列非常实用的R包的合集，涉及到数据导入、转换、清洗以及可视化等数据分析中必不可少的环节。本文的目的在于通过一个简单的眼动数据分析的实例，介绍一下tidyverse的基本知识，并分享一些相关的资料。本文面向的是对R有一定的了解，但对tidyverse不是很了解，并且是在RStudio中使用R的用户。
-载入tidyverselibrary(tidyverse)## Warning: package &amp;#39;tidyverse&amp;#39; was built under R version 3.4.3## -- Attaching packages ------------------------------ tidyverse 1.2.1 --## √ ggplot2 2.2.1 √ purrr 0.2.4## √ tibble 1.4.2 √ dplyr 0.7.4## √ tidyr 0.8.0 √ stringr 1.2.0## √ readr 1.1.1 √ forcats 0.2.0## Warning: package &amp;#39;tibble&amp;#39; was built under R version 3.4.3## Warning: package &amp;#39;tidyr&amp;#39; was built under R version 3.</description>
+      <description>作者：孟祥良
+Tidyverse 是由Hadley Wickham开发的一系列非常实用的R包的合集，涉及到数据导入、转换、清洗以及可视化等数据分析中必不可少的环节。本文的目的在于通过一个简单的眼动数据分析的实例，介绍一下tidyverse的基本知识，并分享一些相关的资料。本文面向的是对R有一定的了解，但对tidyverse不是很了解，并且是在RStudio中使用R的用户。
+载入tidyverselibrary(tidyverse)## -- Attaching packages ------------------------------ tidyverse 1.2.1 --## √ ggplot2 2.2.1 √ purrr 0.2.4## √ tibble 1.4.2 √ dplyr 0.7.4## √ tidyr 0.8.0 √ stringr 1.2.0## √ readr 1.1.1 √ forcats 0.2.0## -- Conflicts --------------------------------- tidyverse_conflicts() --## x dplyr::filter() masks stats::filter()## x dplyr::lag() masks stats::lag()载入tidyverse后，可以看到有8个包被同时载入，这8个包分别是：
+ggplot2：用于可视化tibble：data.frame（数据框）的加强版tidyr：用于数据转换（长、宽数据之间的转换，以及列的分离与合并）readr：用于数据的输入与输出purrr：用于编程dplyr：用于数据清洗stringr：用于处理字符型数据forcats：用于处理因子型数据同时，也可以看到tidyverse系列中的函数与之前存在的哪些函数存在冲突，如果此时你还想使用stats包中的filter函数，需要在filter函数前指定包名，即写成stats：：filter形式。</description>
     </item>
     
     <item>

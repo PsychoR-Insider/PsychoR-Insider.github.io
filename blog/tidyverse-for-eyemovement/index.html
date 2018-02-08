@@ -114,7 +114,7 @@
 
 <meta itemprop="datePublished" content="2017-12-25T00:00:00&#43;00:00" />
 <meta itemprop="dateModified" content="2017-12-25T00:00:00&#43;00:00" />
-<meta itemprop="wordCount" content="2630">
+<meta itemprop="wordCount" content="2549">
 
 
 
@@ -126,7 +126,7 @@
 <time class="post-time"><span class="icon">
   <i class="fa fa-clock-o" aria-hidden="true"></i>
 </span>
-<span>13 minute read</span>
+<span>12 minute read</span>
 <span class="icon">
  <i class="fa fa-pencil" aria-hidden="true"></i>
 </span>
@@ -138,20 +138,16 @@
 <div id="post-box">
 <div id="post" itemprop="articleBody">
     
-    <p><code>Tidyverse</code> 是由<strong>Hadley Wickham</strong>开发的一系列非常实用的<strong>R</strong>包的合集，涉及到数据导入、转换、清洗以及可视化等数据分析中必不可少的环节。本文的目的在于通过一个简单的眼动数据分析的实例，介绍一下<code>tidyverse</code>的基本知识，并分享一些相关的资料。本文面向的是对<strong>R</strong>有一定的了解，但对<code>tidyverse</code>不是很了解，并且是在<strong>RStudio</strong>中使用<strong>R</strong>的用户。</p>
+    <p><strong>作者：</strong>孟祥良</p>
+<p><code>Tidyverse</code> 是由<strong>Hadley Wickham</strong>开发的一系列非常实用的<strong>R</strong>包的合集，涉及到数据导入、转换、清洗以及可视化等数据分析中必不可少的环节。本文的目的在于通过一个简单的眼动数据分析的实例，介绍一下<code>tidyverse</code>的基本知识，并分享一些相关的资料。本文面向的是对<strong>R</strong>有一定的了解，但对<code>tidyverse</code>不是很了解，并且是在<strong>RStudio</strong>中使用<strong>R</strong>的用户。</p>
 <div id="tidyverse" class="section level2">
 <h2>载入tidyverse</h2>
 <pre class="r"><code>library(tidyverse)</code></pre>
-<pre><code>## Warning: package &#39;tidyverse&#39; was built under R version 3.4.3</code></pre>
 <pre><code>## -- Attaching packages ------------------------------ tidyverse 1.2.1 --</code></pre>
 <pre><code>## √ ggplot2 2.2.1     √ purrr   0.2.4
 ## √ tibble  1.4.2     √ dplyr   0.7.4
 ## √ tidyr   0.8.0     √ stringr 1.2.0
 ## √ readr   1.1.1     √ forcats 0.2.0</code></pre>
-<pre><code>## Warning: package &#39;tibble&#39; was built under R version 3.4.3</code></pre>
-<pre><code>## Warning: package &#39;tidyr&#39; was built under R version 3.4.3</code></pre>
-<pre><code>## Warning: package &#39;purrr&#39; was built under R version 3.4.3</code></pre>
-<pre><code>## Warning: package &#39;dplyr&#39; was built under R version 3.4.3</code></pre>
 <pre><code>## -- Conflicts --------------------------------- tidyverse_conflicts() --
 ## x dplyr::filter() masks stats::filter()
 ## x dplyr::lag()    masks stats::lag()</code></pre>
@@ -242,7 +238,7 @@
 <p>根据<strong>Tidy Data</strong>的第三条原则，我这次分析只选择了总注视时间这一个眼动指标。此外，我还选择了试次编号、被试名、刺激物以及兴趣区四列。在对列进行选择时，要用到<code>dplyr</code>包中的<code>select</code>函数。此时的代码如下：</p>
 <pre class="r"><code>dl &lt;- read_csv(&quot;dl.csv&quot;) %&gt;% 
   select(trial = 1, sub = 2, stimuli = 4, aoi = 5, net_dt = 15)</code></pre>
-<p>在这里，我用到了管道操作符<code>%&gt;%</code>。它的作用是将其左边操作所生成的数据传递到其右边函数的第一个参数位置上（通过某种操作也可传递到其他位置上），其快捷键是<strong>Ctrl+Shift+M</strong>（另外，赋值符<strong>&lt;-</strong>的快捷键是<strong>Alt+-</strong>）。使用管道操作符，可以在保证代码具有条理性的前提之下，减少中间变量的命名（给中间变量起名是一件非常耗时的事情）与重复输入。因为<code>tidyverse</code>包函数中第一个参数位置上一般都是数据名，所以管道操作符可以很好地与<code>tidyverse</code>搭配使用。管道操作符属于<code>magrittr</code>包，但载入<code>tidyverse</code>包会将其自动载入。管道操作符并不是只有这一种，若想进一步了解管道操作符，请看<a href="https://www.datacamp.com/community/tutorials/pipe-r-tutorial">Pipes in R Tutorial For Beginners</a>。另外，<code>pipeR</code>包也提供了一系列管道操作符，非常实用，其作者是之前提到的任坤。</p>
+<p>在这里，我用到了管道操作符<code>%&gt;%</code>。它的作用是将其左边操作所生成的数据传递到其右边函数的第一个参数位置上（通过某种操作也可传递到其他位置上），其快捷键是<strong>Ctrl+Shift+M</strong>（另外，赋值符<strong>&lt;-</strong>的快捷键是<strong>Alt+-</strong>）。使用管道操作符，可以在保证代码具有条理性的前提之下，减少中间变量的命名（给中间变量起名是一件非常耗时的事情）与重复输入。因为<code>tidyverse</code>包函数中第一个参数位置上一般都是数据名，所以管道操作符可以很好地与<code>tidyverse</code>搭配使用。管道操作符属于<code>magrittr</code>包，但载入<code>tidyverse</code>包会将其自动载入。管道操作符并不是只有这一种，若想进一步了解管道操作符，请看<a href="https://www.datacamp.com/community/tutorials/pipe-r-tutorial">Pipes in R Tutorial For Beginners</a>。另外，<code>pipeR</code>包也提供了一系列管道操作符，非常实用，其作者是任坤。</p>
 <p><code>tidyverse</code>有一个原则，即每个函数只做一件事情（忘了在哪里看到的了）。但是<code>select</code>函数就违背了这一原则，因为它至少可以做三件事情。一是对列进行选择，二是对所选择的列进行重命名，三是对所选择的列进行排序。在上面的代码中，我从原始数据中选择了5列，并重新给变量命了名，这时的数据是这样的：</p>
 <pre class="r"><code>dl</code></pre>
 <pre><code>## # A tibble: 13,123 x 5
@@ -475,12 +471,12 @@
 ## # Groups:   number [?]
 ##   number word   mndt    se
 ##   &lt;chr&gt;  &lt;chr&gt; &lt;dbl&gt; &lt;dbl&gt;
-## 1 1      d       974  91.3
-## 2 1      g      1092 113  
-## 3 2      d       941  88.2
-## 4 2      g      1693 104  
-## 5 3      d       922 103  
-## 6 3      g      1272 107</code></pre>
+## 1 1      d      1047  98.7
+## 2 1      g      1120  96.5
+## 3 2      d       916  93.0
+## 4 2      g      1303 101  
+## 5 3      d      1084 101  
+## 6 3      g      1358 106</code></pre>
 <p>接下来我就要在此数据的基础上画出一个直条图来，这个图暂时只包括最基本的三种成分。此时的代码如下：</p>
 <pre class="r"><code>dl %&gt;% group_by(number, word) %&gt;% 
   summarise(mndt = mean(mean_ndt), se = sd(mean_ndt)/sqrt(n())) %&gt;% 
@@ -569,28 +565,24 @@
 <pre><code>## 
 ## Error: factor(sub)
 ##           Df   Sum Sq Mean Sq F value Pr(&gt;F)
-## Residuals 46 45836001  996435               
+## Residuals 46 41768843  908018               
 ## 
 ## Error: factor(sub):factor(number)
-##                Df   Sum Sq Mean Sq F value  Pr(&gt;F)   
-## factor(number)  2  4169177 2084589   5.268 0.00683 **
-## Residuals      92 36408265  395742                   
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+##                Df   Sum Sq Mean Sq F value Pr(&gt;F)
+## factor(number)  2  1006076  503038    1.25  0.291
+## Residuals      92 37015181  402339               
 ## 
 ## Error: factor(sub):factor(word)
-##              Df   Sum Sq  Mean Sq F value   Pr(&gt;F)    
-## factor(word)  1 11675795 11675795    36.9 2.24e-07 ***
-## Residuals    46 14554065   316393                     
+##              Df   Sum Sq Mean Sq F value   Pr(&gt;F)    
+## factor(word)  1  4235428 4235428   13.77 0.000557 ***
+## Residuals    46 14152028  307653                     
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Error: factor(sub):factor(number):factor(word)
-##                             Df   Sum Sq Mean Sq F value Pr(&gt;F)   
-## factor(number):factor(word)  2  4827777 2413889   6.018 0.0035 **
-## Residuals                   92 36904397  401135                  
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+##                             Df   Sum Sq Mean Sq F value Pr(&gt;F)
+## factor(number):factor(word)  2  1193022  596511   1.554  0.217
+## Residuals                   92 35314630  383855</code></pre>
 <p>在<code>aov</code>函数中，先要把公式写前面，而且在公式中，自变量要改为<strong>factor</strong>（因子型），另外由于这个实验是被试内设计，所以还要通过<code>Error</code>参数指定被试内变量。公式之后的参数是数据名，最后通过管道操作符出将结果传递给<code>summary</code>函数，方差分析的结果就展示了出来。因为数据做了修改，所以就不针对结果进行说明了。</p>
 </div>
 <div class="section level2">
@@ -602,6 +594,9 @@
 <img src="/img/lianggong.jpg" />
 
 </div>
+<p><strong>工作团队：</strong>PsychoR 北方团队</p>
+<p><strong>作者：</strong>孟祥良</p>
+<p><strong>编辑：</strong>夏骁凯</p>
 </div>
 
 
@@ -624,7 +619,7 @@
   
     and tagged <a href="/tags/tidyverse/">Tidyverse</a> and <a href="/tags/%E7%9C%BC%E5%8A%A8/">眼动</a>
   
-  using <span itemprop="wordCount">2630</span> words.
+  using <span itemprop="wordCount">2549</span> words.
 </p>
 
         
